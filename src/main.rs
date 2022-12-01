@@ -11,6 +11,7 @@ fn main() -> anyhow::Result<()> {
     let opts = Opts::from_args();
     match opts.part.as_str() {
         "1-1" => println!("{}", p1_1()),
+        "1-2" => println!("{}", p1_2()),
         _ => return Err(anyhow!("Unknown puzzle")),
     }
     Ok(())
