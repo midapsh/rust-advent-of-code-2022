@@ -12,6 +12,9 @@ fn criterion_benchmark(c: &mut Criterion) {
     // Day 3
     c.bench_function("3-1", |b| b.iter(p3_1));
     c.bench_function("3-2", |b| b.iter(p3_2));
+    // Day 4
+    c.bench_function("4-1", |b| b.iter(p4_1));
+    c.bench_function("4-2", |b| b.iter(p4_2));
 }
 
 criterion_group!(benches, criterion_benchmark);
