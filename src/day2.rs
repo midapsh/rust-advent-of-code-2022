@@ -288,6 +288,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // 13726
     }
 }
