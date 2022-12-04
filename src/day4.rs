@@ -24,7 +24,29 @@ fn private_solve_part_1(values: &str) -> String {
 }
 
 fn private_solve_part_2(values: &str) -> String {
-    unimplemented!()
+    values
+        .lines()
+        .map(|line| {
+            let (range1, range2) = line.split_once(',').unwrap();
+
+            let (start1, end1) = range1.split_once('-').unwrap();
+            let (start2, end2) = range2.split_once('-').unwrap();
+
+            let (start1, end1) = (start1.parse::<i32>().unwrap(), end1.parse::<i32>().unwrap());
+            let (start2, end2) = (start2.parse::<i32>().unwrap(), end2.parse::<i32>().unwrap());
+
+            if (start1 <= start2) & (start2 <= end1)
+                | (start1 <= end2) & (end2 <= end1)
+                | (start2 <= start1) & (start1 <= end2)
+                | (start2 <= end1) & (end1 <= end2)
+            {
+                1
+            } else {
+                0
+            }
+        })
+        .sum::<i32>()
+        .to_string()
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -53,7 +75,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("4", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
