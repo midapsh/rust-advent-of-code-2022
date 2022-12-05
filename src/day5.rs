@@ -97,7 +97,46 @@ fn private_solve_part_1(values: &str) -> String {
 }
 
 fn private_solve_part_2(values: &str) -> String {
-    unimplemented!()
+    let values: Vec<&str> = values.split_terminator("\n\n").take(2).collect();
+
+    // UNSAFE(hspadim): It's clear by the problem statement that we have only 2 parts
+    let raw_initial_state = values[0];
+    let raw_steps = values[1];
+
+    let mut initial_state = parse_initial_state(raw_initial_state);
+
+    let re: &Regex = regex!(
+        r##"^move (?P<number_of_elements>\d*) from (?P<current_index>\d*) to (?P<next_index>\d*)"##,
+    );
+    raw_steps.lines().for_each(|raw_instruction| {
+        let cap = re.captures(raw_instruction).unwrap();
+        let number_of_elements = cap
+            .name("number_of_elements")
+            .map_or(0_usize, |m| m.as_str().parse::<usize>().unwrap());
+        // UNSAFE(hspadim): Here I'm sure that the number (index in the puzzle context)
+        // is always greater or equal to 1
+        let current_index = cap
+            .name("current_index")
+            .map_or(0_usize, |m| m.as_str().parse::<usize>().unwrap() - 1);
+        // UNSAFE(hspadim): Here I'm sure that the number(index in the puzzle context)
+        // is always greater or equal to 1
+        let next_index = cap
+            .name("next_index")
+            .map_or(0_usize, |m| m.as_str().parse::<usize>().unwrap() - 1);
+
+        let mut aux: Vec<char> = vec![];
+        for _ in 0..number_of_elements {
+            let item = initial_state[current_index].pop().unwrap();
+            aux.push(item);
+        }
+        aux.reverse();
+        initial_state[next_index].append(&mut aux);
+    });
+
+    initial_state
+        .iter()
+        .map(|v| v.last().unwrap())
+        .collect::<String>()
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -126,7 +165,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("MCD", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
@@ -134,6 +173,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // PQTJRSHWS
     }
 }
