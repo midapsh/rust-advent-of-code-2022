@@ -8,6 +8,10 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 structopt = "0.3"
+# Day 5 stuff
+regex = "1"
+# Global vars stuff
+once_cell = "1.16"
 
 [dev-dependencies]
 criterion = "0.3"
