@@ -124,12 +124,9 @@ fn private_solve_part_2(values: &str) -> String {
             .name("next_index")
             .map_or(0_usize, |m| m.as_str().parse::<usize>().unwrap() - 1);
 
-        let mut aux: Vec<char> = vec![];
-        for _ in 0..number_of_elements {
-            let item = initial_state[current_index].pop().unwrap();
-            aux.push(item);
-        }
-        aux.reverse();
+        let ref_vec = &mut initial_state[current_index];
+        let start_value = ref_vec.len()-number_of_elements;
+        let mut aux = ref_vec.drain(start_value..).collect();
         initial_state[next_index].append(&mut aux);
     });
 
