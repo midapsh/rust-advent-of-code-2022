@@ -11,13 +11,13 @@ fn private_solve_part_1(values: &str) -> String {
             Some(index) => {
                 start_of_packet_marker.drain(..=index);
                 start_of_packet_marker.push(letter);
-            },
+            }
             None => {
                 start_of_packet_marker.push(letter);
                 if start_of_packet_marker.len() == 4 {
                     return (pos + 1).to_string();
                 }
-            },
+            }
         }
     }
 
@@ -25,7 +25,26 @@ fn private_solve_part_1(values: &str) -> String {
 }
 
 fn private_solve_part_2(values: &str) -> String {
-    unimplemented!()
+    let line_chars = values.lines().next().unwrap().chars();
+
+    let mut start_of_packet_marker: Vec<char> = vec![];
+
+    for (pos, letter) in line_chars.enumerate() {
+        match start_of_packet_marker.iter().position(|&c| c == letter) {
+            Some(index) => {
+                start_of_packet_marker.drain(..=index);
+                start_of_packet_marker.push(letter);
+            }
+            None => {
+                start_of_packet_marker.push(letter);
+                if start_of_packet_marker.len() == 14 {
+                    return (pos + 1).to_string();
+                }
+            }
+        }
+    }
+
+    0.to_string()
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -54,7 +73,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("19", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
@@ -62,6 +81,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // 2301
     }
 }
