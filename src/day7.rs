@@ -86,7 +86,7 @@ fn parse(values: &str) -> Rc<Directory> {
         }
     }
 
-    root.clone()
+    root
 }
 
 fn private_solve_part_1(values: &str) -> String {
