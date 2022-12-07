@@ -61,7 +61,7 @@ fn parse(values: &str) -> Rc<Directory> {
             ["$", "ls"] => {}
             ["$", "cd", directory_name] => match directory_name {
                 "/" => cwd = Rc::clone(&root),
-                ".." => cwd = Rc::clone(&cwd.parent.as_ref().unwrap()),
+                ".." => cwd = Rc::clone(cwd.parent.as_ref().unwrap()),
                 directory_name => {
                     let new_directory = cwd.sub_dir.borrow().get(directory_name).unwrap().clone();
                     cwd = new_directory;
@@ -108,8 +108,29 @@ fn private_solve_part_1(values: &str) -> String {
     total_value.to_string()
 }
 
-fn private_solve_part_2(_values: &str) -> String {
-    unimplemented!()
+fn private_solve_part_2(values: &str) -> String {
+    let root = parse(values);
+    let mut to_visit = vec![Rc::clone(&root)];
+
+    const TOTAL_SPACE: usize = 70_000_000;
+    const UPDATE_SIZE_SPACE: usize = 30_000_000;
+    let available_space = root.get_size();
+    let free_space = TOTAL_SPACE - available_space;
+    let needed_space = UPDATE_SIZE_SPACE - free_space;
+    let mut best_folder_size = usize::MAX;
+
+    while let Some(dir) = to_visit.pop() {
+        for sub_dir in dir.sub_dir.borrow().values() {
+            to_visit.push(Rc::clone(sub_dir));
+        }
+
+        let size = dir.get_size();
+        if size >= needed_space {
+            best_folder_size = best_folder_size.min(size);
+        }
+    }
+
+    best_folder_size.to_string()
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -138,7 +159,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("24933642", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
@@ -146,6 +167,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // 7991939
     }
 }
