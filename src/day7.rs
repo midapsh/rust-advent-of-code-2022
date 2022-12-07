@@ -95,9 +95,7 @@ fn private_solve_part_1(values: &str) -> String {
     let mut total_value: usize = 0;
 
     while let Some(dir) = to_visit.pop() {
-        for sub_dir in dir.sub_dir.borrow().values() {
-            to_visit.push(Rc::clone(sub_dir));
-        }
+        to_visit.extend(dir.sub_dir.borrow().values().map(Rc::clone));
 
         let size = dir.get_size();
         if size <= 100_000 {
@@ -120,9 +118,7 @@ fn private_solve_part_2(values: &str) -> String {
     let mut best_folder_size = usize::MAX;
 
     while let Some(dir) = to_visit.pop() {
-        for sub_dir in dir.sub_dir.borrow().values() {
-            to_visit.push(Rc::clone(sub_dir));
-        }
+        to_visit.extend(dir.sub_dir.borrow().values().map(Rc::clone));
 
         let size = dir.get_size();
         if size >= needed_space {
