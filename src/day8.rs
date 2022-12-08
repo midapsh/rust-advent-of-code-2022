@@ -86,8 +86,97 @@ fn private_solve_part_1(values: &str) -> String {
         .to_string()
 }
 
-fn private_solve_part_2(_values: &str) -> String {
-    unimplemented!()
+/// UNSAFE: I don't check if position is in boundaries with matrix
+fn calculate_scenic_score(matrix: &Vec<Vec<u8>>, cell: u8, position: (usize, usize)) -> usize {
+    let (i_row, i_col) = position;
+
+    let can_see_on_left = matrix[i_row][..i_col]
+        .iter()
+        .rev()
+        .fold((true, 0_usize), |mut acc, &c| {
+            if acc.0 {
+                if c < cell {
+                    acc.1 += 1_usize;
+                } else {
+                    acc.0 = false;
+                    acc.1 += 1_usize;
+                }
+            }
+            acc
+        })
+        .1;
+    let can_see_on_right = matrix[i_row][i_col + 1..]
+        .iter()
+        .fold((true, 0_usize), |mut acc, &c| {
+            if acc.0 {
+                if c < cell {
+                    acc.1 += 1_usize;
+                } else {
+                    acc.0 = false;
+                    acc.1 += 1_usize;
+                }
+            }
+            acc
+        })
+        .1;
+
+    let can_see_on_top = matrix[..i_row]
+        .iter()
+        .map(|row| row[i_col])
+        .rev()
+        .fold((true, 0_usize), |mut acc, c| {
+            if acc.0 {
+                if c < cell {
+                    acc.1 += 1_usize;
+                } else {
+                    acc.0 = false;
+                    acc.1 += 1_usize;
+                }
+            }
+            acc
+        })
+        .1;
+    let can_see_on_bottom = matrix[i_row + 1..]
+        .iter()
+        .map(|row| row[i_col])
+        .fold((true, 0_usize), |mut acc, c| {
+            if acc.0 {
+                if c < cell {
+                    acc.1 += 1_usize;
+                } else {
+                    acc.0 = false;
+                    acc.1 += 1_usize;
+                }
+            }
+            acc
+        })
+        .1;
+
+    return can_see_on_left * can_see_on_right * can_see_on_top * can_see_on_bottom;
+}
+
+fn private_solve_part_2(values: &str) -> String {
+    let matrix = values
+        .lines()
+        .map(|x| {
+            x.bytes()
+                .map(|c| parse_byte_to_u8_number(c))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    let row_len = matrix.len();
+    let col_len = matrix.first().unwrap().len();
+
+    let mut max_scenic_score = 0;
+    for (i_row, row) in matrix[1..row_len - 1].iter().enumerate() {
+        for (i_col, cell) in row[1..col_len - 1].iter().enumerate() {
+            let cell_scenic_score = calculate_scenic_score(&matrix, *cell, (i_row + 1, i_col + 1));
+            max_scenic_score = max_scenic_score.max(cell_scenic_score);
+        }
+    }
+
+    max_scenic_score.to_string()
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -116,7 +205,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("8", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
@@ -124,6 +213,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // 209880
     }
 }
