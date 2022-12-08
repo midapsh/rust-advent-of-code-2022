@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 const _DUMMY_INPUT: &str = include_str!("data/day8-dummy.txt");
 const REAL_INPUT: &str = include_str!("data/day8-real.txt");
 
@@ -93,64 +95,52 @@ fn calculate_scenic_score(matrix: &Vec<Vec<u8>>, cell: u8, position: (usize, usi
     let can_see_on_left = matrix[i_row][..i_col]
         .iter()
         .rev()
-        .fold((true, 0_usize), |mut acc, &c| {
-            if acc.0 {
-                if c < cell {
-                    acc.1 += 1_usize;
-                } else {
-                    acc.0 = false;
-                    acc.1 += 1_usize;
-                }
+        .try_fold(0_usize, |acc, &c| {
+            if c < cell {
+                ControlFlow::Continue(acc + 1_usize)
+            } else {
+                ControlFlow::Break(acc + 1_usize)
             }
-            acc
         })
-        .1;
+        .break_value()
+        .unwrap();
     let can_see_on_right = matrix[i_row][i_col + 1..]
         .iter()
-        .fold((true, 0_usize), |mut acc, &c| {
-            if acc.0 {
-                if c < cell {
-                    acc.1 += 1_usize;
-                } else {
-                    acc.0 = false;
-                    acc.1 += 1_usize;
-                }
+        .try_fold(0_usize, |acc, &c| {
+            if c < cell {
+                ControlFlow::Continue(acc + 1_usize)
+            } else {
+                ControlFlow::Break(acc + 1_usize)
             }
-            acc
         })
-        .1;
+        .break_value()
+        .unwrap();
 
     let can_see_on_top = matrix[..i_row]
         .iter()
         .map(|row| row[i_col])
         .rev()
-        .fold((true, 0_usize), |mut acc, c| {
-            if acc.0 {
-                if c < cell {
-                    acc.1 += 1_usize;
-                } else {
-                    acc.0 = false;
-                    acc.1 += 1_usize;
-                }
+        .try_fold(0_usize, |acc, c| {
+            if c < cell {
+                ControlFlow::Continue(acc + 1_usize)
+            } else {
+                ControlFlow::Break(acc + 1_usize)
             }
-            acc
         })
-        .1;
+        .break_value()
+        .unwrap();
     let can_see_on_bottom = matrix[i_row + 1..]
         .iter()
         .map(|row| row[i_col])
-        .fold((true, 0_usize), |mut acc, c| {
-            if acc.0 {
-                if c < cell {
-                    acc.1 += 1_usize;
-                } else {
-                    acc.0 = false;
-                    acc.1 += 1_usize;
-                }
+        .try_fold(0_usize, |acc, c| {
+            if c < cell {
+                ControlFlow::Continue(acc + 1_usize)
+            } else {
+                ControlFlow::Break(acc + 1_usize)
             }
-            acc
         })
-        .1;
+        .break_value()
+        .unwrap();
 
     return can_see_on_left * can_see_on_right * can_see_on_top * can_see_on_bottom;
 }
