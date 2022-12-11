@@ -75,14 +75,7 @@ impl Snake {
         let row_diff = self.head.0 - self.tail.0;
         let col_diff = self.head.1 - self.tail.1;
 
-        if (row_diff == 0) & (col_diff.abs() > 1) {
-            // GOTO Right/Left
-            self.tail.1 += col_diff.signum();
-        } else if (col_diff == 0) & (row_diff.abs() > 1) {
-            // GOTO Up/Down
-            self.tail.0 += row_diff.signum();
-        } else if (row_diff.abs() > 1) | (col_diff.abs() > 1) {
-            // GOTO Diagonal
+        if (row_diff.abs() > 1) | (col_diff.abs() > 1) {
             self.tail.0 += row_diff.signum();
             self.tail.1 += col_diff.signum();
         }
@@ -124,14 +117,7 @@ impl BigSnake {
             let row_diff = self.segments[i - 1].0 - self.segments[i].0;
             let col_diff = self.segments[i - 1].1 - self.segments[i].1;
 
-            if (row_diff == 0) & (col_diff.abs() > 1) {
-                // GOTO Right/Left
-                self.segments[i].1 += col_diff.signum();
-            } else if (col_diff == 0) & (row_diff.abs() > 1) {
-                // GOTO Up/Down
-                self.segments[i].0 += row_diff.signum();
-            } else if (row_diff.abs() > 1) | (col_diff.abs() > 1) {
-                // GOTO Diagonal
+            if (row_diff.abs() > 1) | (col_diff.abs() > 1) {
                 self.segments[i].0 += row_diff.signum();
                 self.segments[i].1 += col_diff.signum();
             }
