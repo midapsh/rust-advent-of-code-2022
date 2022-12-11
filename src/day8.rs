@@ -31,6 +31,7 @@ fn is_not_visible(matrix: &Vec<Vec<(u8, bool)>>, cell_value: u8, position: (usiz
     return !(can_see_on_left | can_see_on_right | can_see_on_top | can_see_on_bottom);
 }
 
+#[allow(dead_code)]
 fn print_matrix_result(matrix: &Vec<Vec<(u8, bool)>>) {
     let matrix_result = matrix
         .iter()
