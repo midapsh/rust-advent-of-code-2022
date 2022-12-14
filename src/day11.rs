@@ -29,6 +29,7 @@ impl Monkey {
         }
     }
 
+    #[allow(dead_code)]
     fn print_monkey_status(&self) {
         println!(
             "monkey[{}]: {:?} @ {}",
@@ -98,13 +99,11 @@ impl Monkey {
     }
 
     fn add_item(&mut self, new: i32) {
-        self.iterations += 1;
-        // self.items.push_front(new);
         self.items.push_back(new);
     }
 
     fn run_operation(&mut self) -> Vec<(usize, i32)> {
-        // self.iterations += 1;
+        self.iterations += self.items.len();
         self.items
             .drain(..)
             .map(|item| (self.operation)(item))
@@ -194,12 +193,12 @@ fn private_solve_part_1(values: &str) -> String {
     let monkey_list_len = monkey_list.len();
 
     const NUMBER_OF_ROUNDS: usize = 20;
-    for round in 0..=NUMBER_OF_ROUNDS {
-        println!("Round {round}");
-        for m in monkey_list.iter() {
-            m.print_monkey_status();
-        }
-        println!("");
+    // println!("Round 0");
+    // for m in monkey_list.iter() {
+    //     m.print_monkey_status();
+    // }
+    // println!("");
+    for _round in 1..=NUMBER_OF_ROUNDS {
         for pos in 0..monkey_list_len {
             let monkey = &mut monkey_list[pos];
             let operations = monkey.run_operation();
@@ -208,11 +207,17 @@ fn private_solve_part_1(values: &str) -> String {
                 next_monkey.add_item(item);
             }
         }
+        // println!("Round {_round}");
+        // for m in monkey_list.iter() {
+        //     m.print_monkey_status();
+        // }
+        // println!("");
     }
+    
     monkey_list.sort_unstable_by_key(|m| m.iterations);
-    monkey_list.reverse();
     monkey_list
         .iter()
+        .rev()
         .take(2)
         .fold(1, |acc, Monkey { iterations, .. }| acc * iterations)
         .to_string()
