@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use regex::Regex;
 
 const _DUMMY_INPUT: &str = include_str!("data/day11-dummy.txt");
@@ -11,18 +13,27 @@ macro_rules! regex {
 }
 
 struct Monkey {
-    id: usize,
-    items: Vec<i32>,
+    _id: usize,
+    items: VecDeque<i32>,
     operation: Box<dyn FnMut(i32) -> (usize, i32)>,
+    iterations: usize,
 }
 
 impl Monkey {
-    fn new(id: usize, items: Vec<i32>, operation: Box<dyn FnMut(i32) -> (usize, i32)>) -> Self {
+    fn new(_id: usize, items: Vec<i32>, operation: Box<dyn FnMut(i32) -> (usize, i32)>) -> Self {
         Self {
-            id,
-            items,
+            _id,
+            items: items.into(),
             operation,
+            iterations: 0,
         }
+    }
+
+    fn print_monkey_status(&self) {
+        println!(
+            "monkey[{}]: {:?} @ {}",
+            self._id, self.items, self.iterations
+        );
     }
 
     fn parse_operation(
@@ -33,7 +44,7 @@ impl Monkey {
         case_false_monkey_id: usize,
     ) -> Box<dyn FnMut(i32) -> (usize, i32)> {
         if raw_operation == "*" {
-            if raw_operation.matches("raw_value").count() == 2 {
+            if raw_value == "old" {
                 let operation = move |old: i32| {
                     let cur_level = (old * old) / 3;
 
@@ -47,7 +58,7 @@ impl Monkey {
             } else {
                 let value = raw_value.parse::<i32>().unwrap();
                 let operation = move |old: i32| {
-                    let cur_level = (value * old) / 3;
+                    let cur_level = (old * value) / 3;
 
                     if (cur_level % test_divider) == 0 {
                         (case_true_monkey_id, cur_level)
@@ -57,9 +68,10 @@ impl Monkey {
                 };
                 return Box::new(operation);
             }
-        } else {
-            // else if raw_operation == "+" {
-            if raw_operation.matches("old").count() == 2 {
+        } else
+        // else if raw_operation == "+"
+        {
+            if raw_value == "old" {
                 let operation = move |old: i32| {
                     let cur_level = (old + old) / 3;
 
@@ -73,7 +85,7 @@ impl Monkey {
             } else {
                 let value = raw_value.parse::<i32>().unwrap();
                 let operation = move |old: i32| {
-                    let cur_level = (value + old) / 3;
+                    let cur_level = (old + value) / 3;
                     if (cur_level % test_divider) == 0 {
                         (case_true_monkey_id, cur_level)
                     } else {
@@ -86,32 +98,34 @@ impl Monkey {
     }
 
     fn add_item(&mut self, new: i32) {
-        self.items.push(new);
+        self.iterations += 1;
+        // self.items.push_front(new);
+        self.items.push_back(new);
     }
 
-    fn run_operation(&mut self) -> Option<(usize, i32)> {
-        if let Some(item) = self.items.pop() {
-            Some((self.operation)(item))
-        } else {
-            None
-        }
+    fn run_operation(&mut self) -> Vec<(usize, i32)> {
+        // self.iterations += 1;
+        self.items
+            .drain(..)
+            .map(|item| (self.operation)(item))
+            .collect::<Vec<(usize, i32)>>()
     }
 }
 
-fn private_solve_part_1(values: &str) -> String {
-    let re_monkey_id: &Regex = regex!(r##"^Monkey (?P<monkey_id>\d*)"##); // Use find_one
+fn parse(values: &str) -> Vec<Monkey> {
+    let re_monkey_id: &Regex = regex!(r##"^Monkey (?P<monkey_id>\d+)"##); // Use find_one
     let re_starting_items: &Regex = regex!(r##"(\d+)"##); // Use match to get all
     let re_operation: &Regex =
-        regex!(r##"\s*Operation: new = old (?P<operator>[\*\+]) (?P<value>.*?)"##); // Use find_one
+        regex!(r##"\s*Operation: new = old (?P<operator>[\*\+]) (?P<raw_value>.*)"##); // Use find_one
     let re_test_divider: &Regex = regex!(r##"(\d+)"##); // Use find_one
     let re_first_test_phrase: &Regex =
-        regex!(r##"If true: throw to monkey (?P<other_monkey_id>\d*)"##);
+        regex!(r##"If true: throw to monkey (?P<other_monkey_id>\d+)"##);
     let re_second_test_phrase: &Regex =
-        regex!(r##"If false: throw to monkey (?P<other_monkey_id>\d*)"##);
+        regex!(r##"If false: throw to monkey (?P<other_monkey_id>\d+)"##);
 
     let mut monkey_list: Vec<Monkey> = vec![];
 
-    values.split("\n\n").map(|chunk| {
+    values.split("\n\n").for_each(|chunk| {
         let mut iter_chunk = chunk.split("\n");
 
         let str_monkey_id = iter_chunk.next().unwrap().trim();
@@ -134,9 +148,8 @@ fn private_solve_part_1(values: &str) -> String {
         let capture_case_false_monkey_id = re_second_test_phrase
             .captures(str_second_test_phrase)
             .unwrap();
-
         let raw_operation = capture_operation.name("operator").unwrap().as_str();
-        let raw_value = capture_operation.name("value").unwrap().as_str();
+        let raw_value = capture_operation.name("raw_value").unwrap().as_str();
         let test_divider = capture_test_divider
             .get(0)
             .unwrap()
@@ -155,6 +168,7 @@ fn private_solve_part_1(values: &str) -> String {
             .as_str()
             .parse::<usize>()
             .unwrap();
+
         let operation = Monkey::parse_operation(
             raw_operation,
             raw_value,
@@ -171,16 +185,37 @@ fn private_solve_part_1(values: &str) -> String {
             .unwrap();
         let monkey = Monkey::new(id, items, operation);
         monkey_list.push(monkey);
+    });
+    return monkey_list;
+}
 
-        const NUMBER_OF_ROUND: usize = 20;
-        for _ in 0..NUMBER_OF_ROUND {
-            for monkey in monkey_list.iter_mut() {
-                let (monkey_id, item) = monkey.run_operation().unwrap();
-                monkey_list[monkey_id].add_item(item);
+fn private_solve_part_1(values: &str) -> String {
+    let mut monkey_list = parse(values);
+    let monkey_list_len = monkey_list.len();
+
+    const NUMBER_OF_ROUNDS: usize = 20;
+    for round in 0..=NUMBER_OF_ROUNDS {
+        println!("Round {round}");
+        for m in monkey_list.iter() {
+            m.print_monkey_status();
+        }
+        println!("");
+        for pos in 0..monkey_list_len {
+            let monkey = &mut monkey_list[pos];
+            let operations = monkey.run_operation();
+            for (monkey_id, item) in operations {
+                let next_monkey = &mut monkey_list[monkey_id];
+                next_monkey.add_item(item);
             }
         }
-    });
-    unimplemented!()
+    }
+    monkey_list.sort_unstable_by_key(|m| m.iterations);
+    monkey_list.reverse();
+    monkey_list
+        .iter()
+        .take(2)
+        .fold(1, |acc, Monkey { iterations, .. }| acc * iterations)
+        .to_string()
 }
 
 fn private_solve_part_2(values: &str) -> String {
