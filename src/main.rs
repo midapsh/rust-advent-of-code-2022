@@ -44,6 +44,9 @@ fn main() -> anyhow::Result<()> {
         // Day 11
         "11-1" => println!("{}", p11_1()),
         "11-2" => println!("{}", p11_2()),
+        // Day 12
+        "12-1" => println!("{}", p12_1()),
+        "12-2" => println!("{}", p12_2()),
         _ => return Err(anyhow!("Unknown puzzle")),
     }
     Ok(())
