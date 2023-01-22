@@ -4,7 +4,7 @@ use std::str::Chars;
 const _DUMMY_INPUT: &str = include_str!("data/day13-dummy.txt");
 const REAL_INPUT: &str = include_str!("data/day13-real.txt");
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone, Ord)]
 enum Val {
     Num(i32),
     List(Vec<Self>),
@@ -101,6 +101,17 @@ impl Val {
     }
 }
 
+impl PartialOrd for Val {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.compare(other))
+    }
+}
+
+struct Pairs {
+    left: Val,
+    right: Val,
+}
+
 fn private_solve_part_1(values: &str) -> String {
     let mut all_lists: Vec<[Val; 2]> = Vec::with_capacity(2000);
 
@@ -114,19 +125,50 @@ fn private_solve_part_1(values: &str) -> String {
     all_lists
         .iter()
         .enumerate()
-        .map(|(pos, [left_list, right_list])| {
-            if left_list.compare(&right_list) == Ordering::Less {
-                pos + 1
-            } else {
-                0
-            }
-        })
+        .map(
+            |(pos, [left_list, right_list])| {
+                if left_list < right_list {
+                    pos + 1
+                } else {
+                    0
+                }
+            },
+        )
         .sum::<usize>()
         .to_string()
 }
 
 fn private_solve_part_2(values: &str) -> String {
-    unimplemented!()
+    let divider_packet_begin = Val::parse("[[2]]");
+    let divider_packet_end = Val::parse("[[6]]");
+
+    let mut all_lists: Vec<Val> = Vec::with_capacity(2000);
+
+    values.split("\n\n").for_each(|chunk| {
+        let mut iter_chunk = chunk.split("\n");
+        let left_list = Val::parse(iter_chunk.next().unwrap().trim());
+        let right_list = Val::parse(iter_chunk.next().unwrap().trim());
+        all_lists.push(left_list);
+        all_lists.push(right_list);
+    });
+
+    all_lists.push(divider_packet_begin.clone());
+    all_lists.push(divider_packet_end.clone());
+
+    all_lists.sort();
+
+    let mut answer = 1;
+
+    for (pos, cur_list) in all_lists.iter().enumerate() {
+        if *cur_list == divider_packet_begin {
+            answer *= pos + 1;
+        } else if *cur_list == divider_packet_end  {
+            answer *= pos + 1;
+            return answer.to_string();
+        }
+    }
+
+    String::from("Error")
 }
 
 fn _solve_part_1_dummy() -> String {
@@ -155,7 +197,7 @@ mod tests {
     }
     #[test]
     fn test_part_2_dummy() {
-        assert_eq!("", _solve_part_2_dummy());
+        assert_eq!("140", _solve_part_2_dummy());
     }
     #[test]
     fn test_part_1_real() {
@@ -163,6 +205,6 @@ mod tests {
     }
     #[test]
     fn test_part_2_real() {
-        println!("{}", solve_part_2_real());
+        println!("{}", solve_part_2_real()); // 25792
     }
 }
