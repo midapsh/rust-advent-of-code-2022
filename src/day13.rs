@@ -4,7 +4,7 @@ use std::str::Chars;
 const _DUMMY_INPUT: &str = include_str!("data/day13-dummy.txt");
 const REAL_INPUT: &str = include_str!("data/day13-real.txt");
 
-#[derive(Debug, Eq, PartialEq, Clone, Ord)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 enum Val {
     Num(i32),
     List(Vec<Self>),
@@ -55,22 +55,11 @@ impl Val {
         match (self, other) {
             (Val::List(left), Val::List(right)) => {
                 let mut idx = 0;
-                loop {
-                    if left.len() <= idx || right.len() <= idx {
-                        if left.len() < right.len() {
-                            return Ordering::Less;
-                        } else if left.len() == right.len() {
-                            return Ordering::Equal;
-                        } else {
-                            return Ordering::Greater;
-                        }
-                    }
+                while idx < left.len() && idx < right.len() {
                     match (&left[idx], &right[idx]) {
                         (Val::Num(l), Val::Num(r)) => {
-                            if l < r {
-                                return Ordering::Less;
-                            } else if l > r {
-                                return Ordering::Greater;
+                            if l != r {
+                                return l.cmp(r);
                             }
                         }
                         (Val::List(_l), Val::Num(r)) => {
@@ -95,6 +84,7 @@ impl Val {
                     }
                     idx += 1;
                 }
+                left.len().cmp(&right.len())
             }
             _ => panic!("Bad input"),
         }
@@ -107,16 +97,17 @@ impl PartialOrd for Val {
     }
 }
 
-struct Pairs {
-    left: Val,
-    right: Val,
+impl Ord for Val {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
 }
 
 fn private_solve_part_1(values: &str) -> String {
     let mut all_lists: Vec<[Val; 2]> = Vec::with_capacity(2000);
 
     values.split("\n\n").for_each(|chunk| {
-        let mut iter_chunk = chunk.split("\n");
+        let mut iter_chunk = chunk.split('\n');
         let left_list = Val::parse(iter_chunk.next().unwrap().trim());
         let right_list = Val::parse(iter_chunk.next().unwrap().trim());
         all_lists.push([left_list, right_list]);
@@ -145,7 +136,7 @@ fn private_solve_part_2(values: &str) -> String {
     let mut all_lists: Vec<Val> = Vec::with_capacity(2000);
 
     values.split("\n\n").for_each(|chunk| {
-        let mut iter_chunk = chunk.split("\n");
+        let mut iter_chunk = chunk.split('\n');
         let left_list = Val::parse(iter_chunk.next().unwrap().trim());
         let right_list = Val::parse(iter_chunk.next().unwrap().trim());
         all_lists.push(left_list);
@@ -162,7 +153,7 @@ fn private_solve_part_2(values: &str) -> String {
     for (pos, cur_list) in all_lists.iter().enumerate() {
         if *cur_list == divider_packet_begin {
             answer *= pos + 1;
-        } else if *cur_list == divider_packet_end  {
+        } else if *cur_list == divider_packet_end {
             answer *= pos + 1;
             return answer.to_string();
         }
